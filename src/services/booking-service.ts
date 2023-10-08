@@ -14,7 +14,7 @@ async function createBooking(userId:number, roomId: number){
 
     /// verificar se o cliente possui inscrição 
     const enrollment = await enrollmentRepository.findWithAddressByUserId(userId)
-    if (!enrollment) throw forbiddenError()//// FIXME: criar erro
+    if (!enrollment) throw forbiddenError()
     const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id)
     if (
         !ticket ||
@@ -22,7 +22,13 @@ async function createBooking(userId:number, roomId: number){
         ticket.TicketType.isRemote ||
         !ticket.TicketType.includesHotel 
       ) {
-        throw forbiddenError() //// FIXME: criar erro
+        throw forbiddenError() 
+      }
+
+      const ativo = await bookingRepository.activeBooking(userId)
+      if(ativo){
+        throw forbiddenError() 
+
       }
 
       //// verfificar quarto e capicidade
@@ -58,6 +64,8 @@ async function editBooking(userId:number,roomId: number, bookingId:number){
   if(room.Booking.length >= room.capacity) {
       throw forbiddenError() //// FIXME: criar erro
     }
+
+  
 
 
   const booking = await bookingRepository.updateBooking(userId,roomId, bookingId) 
