@@ -12,9 +12,11 @@ import { cleanDb } from '../helpers';
 import { init } from '@/app';
 import { bookingRepository } from '@/repositories/booking-repository';
 import { bookingService } from '@/services/booking-service';
-import { ticketsRepository } from '@/repositories';
+import { enrollmentRepository, ticketsRepository } from '@/repositories';
 import { createHotel, createRoomWithHotelId } from '../factories/hotels-factory';
 import { TicketTypeTicket } from '@/protocols';
+import { notFoundError } from '@/errors';
+import { AuthenticatedRequest } from '@/middlewares';
 
 
 
@@ -73,6 +75,18 @@ it('Deve retornar um erro quando o ingresso é remoto', async () => {
         expect(error.message).toEqual('Forbidden')
     }
 })
+
+it('Deve retornar o booling quando o usario for valido', async () => {
+    const userId = 1
+    const mockBooking = { id: 1, userId, roomId: 2 }
+    bookingRepository.findBooking = jest.fn().mockResolvedValue(mockBooking)
+
+    const result = await bookingService.listBooking(userId)
+
+    expect(result).toEqual(mockBooking)
+  })
+
+ 
 
 it("Deve retornar o booking quando cliente possuir um", async () => {
     const bookingData = { 
@@ -200,5 +214,6 @@ it('Deve retornar um erro quando o quarto escolhido para atualizar não pertence
         expect(error.message).toEqual('Forbidden')
     }
 })
+
 
 
