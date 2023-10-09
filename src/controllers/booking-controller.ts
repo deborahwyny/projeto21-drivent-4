@@ -26,12 +26,12 @@ export async function putBooking (req:AuthenticatedRequest, res:Response){
     const userId = req.userId
     const {roomId} = req.body
     const {bookingId} = req.params 
-    const bookingString = bookingId as string
+    const bookingString = bookingId.toString()
 
     // const { bookingId } = req.params
 
 
     const booking = await bookingService.editBooking(Number(userId),Number(roomId),Number(bookingId) )
-    return res.status(200).json({bookingId:bookingString})
+    return res.status(200).json({ bookingId: `"${bookingString}"` });
 
 }
