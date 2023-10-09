@@ -35,57 +35,7 @@ describe('All unit tests', () => {
     })
 })
 
-// describe('getBookingByUserId', () => {
-//     it('should return the booking when it exists', async () => {
-//         const mockUser: User = await createUser();
-//         const mockEnrollment: Enrollment = await createEnrollmentWithAddress(mockUser)
-//         const mockTicketType: TicketType = await createTicketTypeWithHotel()
-//         const mockTicket: Ticket = await createTicket(mockEnrollment.id, mockTicketType.id, TicketStatus.PAID)
-//         await createPayment(mockTicket.id, mockTicketType.price)
-//         const mockHotel: Hotel = await createHotel()
-//         const mockRoom: Room = await createRoomWithHotelId(mockHotel.id)
-//         const mockBooking: Booking = await createBooking(mockUser.id, mockRoom.id)  
-//         const ticket: TicketTypeTicket = {
-//             id: mockBooking.id,
-//             ticketTypeId: mockTicketType.id,
-//             enrollmentId: mockEnrollment.id,
-//             status: TicketStatus.PAID,
-//             TicketType: {
-//                 id: mockTicketType.id,
-//                 name: faker.name.findName(),
-//                 price: faker.datatype.number(),
-//                 isRemote: true,
-//                 includesHotel: true,
-//                 createdAt: new Date(),
-//                 updatedAt: new Date(),
-//             },
-//             createdAt: new Date(),
-//             updatedAt: new Date(),
-//         };    
-//         jest.spyOn(bookingRepository, "listByRoomId").mockResolvedValue(mockBooking)
 
-//       const userId = faker.datatype.number()
-//       const result = await bookingService.listBooking(userId)
-
-//       expect(result).toEqual(mockBooking)
-//       expect(bookingRepository.listByRoomId).toHaveBeenCalledWith(userId)
-//     });
-
-//     it('should throw a 404 Not Found when the booking does not exist', async () => {
-//       (bookingRepository.listByRoomId as jest.Mock).mockRejectedValue(undefined)
-
-//       const userId = faker.datatype.number()
-
-//       try {
-//         await bookingService.listBooking(userId)
-//         expect(true).toBe(false);
-//       } catch (error) {
-//         expect(error.statusCode).toBe(404)
-//       }
-
-//       expect(bookingRepository.listByRoomId).toHaveBeenCalledWith(userId);
-//     });
-//   });
 
 it('Deve retornar um erro quando o ingresso é remoto', async () => {
     const mockUser: User = await createUser();
@@ -124,6 +74,40 @@ it('Deve retornar um erro quando o ingresso é remoto', async () => {
     }
 })
 
+it("Deve retornar o booking quando cliente possuir um", async () => {
+    const bookingData = { 
+      id: 1,
+      Room: { }
+    };
+    jest.spyOn(bookingRepository, "findBooking").mockImplementationOnce((): any => {
+      return bookingData;
+    })
+    const promise = bookingService.listBooking(1)
+    expect(promise).resolves.toEqual(bookingData)
+})
+
+it("Deve retornar um erro se o cliente não possuir um enrollment", async () => {
+    jest.spyOn(bookingRepository, "listRooms").mockImplementationOnce((): any => {
+      return {
+        capacity: 10,
+        _count: {
+          Booking: 1
+        }
+      };
+    });
+    jest.spyOn(bookingRepository, "findBooking").mockImplementationOnce((): any => {
+      return {
+        Booking: null,
+        Enrollment: []
+      };
+    });
+    const promise = bookingService.createBooking(1, 1);
+    expect(promise).rejects.toEqual({
+      name: 'forbiddenError', 
+      message: 'Forbidden',
+    })
+  })
+
 
 it('Deve retornar um erro quando não inclui hotrl', async () => {
     const mockUser: User = await createUser()
@@ -161,23 +145,6 @@ it('Deve retornar um erro quando não inclui hotrl', async () => {
         expect(error.message).toEqual('Forbidden')
     }
 })
-
-
-// it('Deve criar um booking quando todas as condições foram atendidas', async () => {
-//     const mockRoom = { id: faker.datatype.number(), capacity: 3 }
-//     const mockBookings = [{ id: faker.datatype.number() }, { id: faker.datatype.number() }];
-//     (bookingRepository.listRooms as jest.Mock).mockResolvedValue(mockRoom)
-//     (bookingRepository.listRooms as jest.Mock).mockResolvedValue(mockBookings)
-//     const params = { userId: faker.datatype.number(), roomId: faker.datatype.number() }
-
-//     const mockResult = { id: faker.datatype.number(), roomId: params.roomId, userId: params.userId };
-//     (bookingRepository.creatingBooking as jest.Mock).mockResolvedValue(mockResult)
-
-//     const result = await bookingService.createBooking(params.userId,params.userId)
-
-//     expect(result).toEqual(mockResult);
-//     expect(bookingRepository.creatingBooking).toHaveBeenCalledWith(params)
-//   })
 
 
 it('Deve retornar erro quando o ticket não tiver sido pago', async () => {
@@ -232,5 +199,6 @@ it('Deve retornar um erro quando o quarto escolhido para atualizar não pertence
         expect(error.name).toEqual('forbiddenError')
         expect(error.message).toEqual('Forbidden')
     }
-});
+})
+
 
