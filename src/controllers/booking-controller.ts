@@ -26,7 +26,7 @@ export async function putBooking (req:AuthenticatedRequest, res:Response){
     const userId = req.userId
     const {roomId} = req.body
     const {bookingId} = req.params 
-    const bookingString = bookingId.toString()
+    const bookingString = `"${bookingId}"`; // Colocar aspas duplas ao redor do valor
 
     // const { bookingId } = req.params
 

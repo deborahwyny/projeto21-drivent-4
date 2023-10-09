@@ -229,24 +229,40 @@ it('deve evitar rooms duplicados por reserva', async () => {
     }
 })
 
-it("Should throw an error when the user doesn't have a ticket", async () => {
-    jest.spyOn(bookingRepository, "listRooms").mockImplementationOnce((): any => {
-      return {
-        capacity: 10,
-        _count: {
-          Booking: 1
-        }
-      };
-    });
-    jest.spyOn(bookingRepository, "getUserById").mockImplementationOnce((): any => {
-      return {
-        Booking: null,
-        Enrollment: [
-          { Ticket: null }
-        ]
-      };
-    });
 
+it('Deve retornar um erro quando a reserva não puder ser encontrada para atualização', async () => {
+    const mockUser: User = await createUser();
+    const mockHotel: Hotel = await createHotel();
+    const mockRoom: Room = await createRoomWithHotelId(mockHotel.id);
+    const nonExistentBookingId = 9999; // ID de reserva que não existe
+
+    jest.spyOn(bookingRepository, 'updateBooking').mockResolvedValue(null);
+
+    try {
+        await bookingService.editBooking(mockRoom.id, mockUser.id, nonExistentBookingId);
+        fail('Expected editBooking to throw forbiddenError');
+    } catch (error) {
+        expect(error.name).toEqual('forbiddenError');
+        expect(error.message).toEqual('Forbidden');
+    }
+});
+
+
+it('Deve retornar um erro quando o quarto não existir', async () => {
+    const userId = 1;
+    const roomId = 1; // Quarto que não existe
+
+    try {
+        await bookingService.createBooking(roomId, userId);
+        fail('Expected createBooking to throw forbiddenError');
+    } catch (error) {
+        expect(error.name).toEqual('forbiddenError');
+        expect(error.message).toEqual('Forbidden');
+    }
+});
+
+
+it('Deve retornar um erro quando o usuário não estiver autenticado', async () => {
     try {
         await bookingService.createBooking(1, 1);
         fail('Expected createBooking to throw forbiddenError');

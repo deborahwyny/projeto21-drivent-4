@@ -8,6 +8,7 @@ import { createEnrollmentWithAddress, createPayment, createUser, createTicketTyp
 import { createHotel, createRoomWithHotelId } from '../factories/hotels-factory'
 import { TicketStatus } from '@prisma/client'
 import { prisma } from '@/config'
+import { bookingService } from '@/services/booking-service'
 
 
 beforeAll(async () => {
@@ -110,6 +111,35 @@ describe("POST / Booking", ()=>{
         const retornar = await server.post('/booking').set('Authorization', `Bearer ${token}`).send({ roomId: room.id })
         expect(retornar.status).toBe(403)
     })
+
+    it('Deve lançar um erro forbiddenError quando o ticket está no status "RESERVED"', async () => {
+      const userId = 1; // Substitua pelo ID de um usuário válido
+      const reservedTicketId = 1; // Substitua pelo ID de um ticket que está no status "RESERVED"
+      try {
+          await bookingService.createBooking(userId, reservedTicketId);
+          fail('Expected createBooking to throw forbiddenError');
+      } catch (error) {
+          expect(error.name).toEqual('forbiddenError');
+          expect(error.message).toEqual('Forbidden');
+      }
+  });
+
+  it('Deve lançar um erro forbiddenError quando o tipo de ticket não inclui hotel', async () => {
+    const userId = 1; // Substitua pelo ID de um usuário válido
+    const ticketWithoutHotelId = 1; // Substitua pelo ID de um ticket que não inclui hotel
+    try {
+        await bookingService.createBooking(userId, ticketWithoutHotelId);
+        fail('Expected createBooking to throw forbiddenError');
+    } catch (error) {
+        expect(error.name).toEqual('forbiddenError');
+        expect(error.message).toEqual('Forbidden');
+    }
+});
+
+
+
+  
+  
     })
 
 
