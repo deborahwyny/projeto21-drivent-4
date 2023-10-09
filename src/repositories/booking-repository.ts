@@ -65,6 +65,37 @@ async function updateBooking(userId:number,roomId: number, bookingId:number){
     })
 }
 
+async function getUserById(userId: number){
+  return await prisma.user.findUnique({
+    where: {
+      id: userId
+    },
+    select: {
+      Booking: {
+        select: {
+          id: true,
+          Room: true
+        }
+      },
+      Enrollment: {
+        select: {
+          Ticket: {
+            select: {
+              status: true,
+              TicketType: {
+                select: {
+                  includesHotel: true,
+                  isRemote: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+};
+
 
 
 
@@ -74,5 +105,6 @@ creatingBooking,
 listRooms,
 updateBooking,
 activeBooking,
-listByRoomId
+listByRoomId,
+getUserById
 }

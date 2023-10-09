@@ -214,6 +214,48 @@ it('Deve retornar um erro quando o quarto escolhido para atualizar não pertence
         expect(error.message).toEqual('Forbidden')
     }
 })
+it('deve evitar rooms duplicados por reserva', async () => {
+    const mockUser: User = await createUser();
+    const mockHotel: Hotel = await createHotel();
+    const mockRoom: Room = await createRoomWithHotelId(mockHotel.id);
+    await createBooking(mockUser.id, mockRoom.id); 
+
+    try {
+        await bookingService.createBooking(mockUser.id, mockRoom.id); 
+        fail('Expected createBooking to throw forbiddenError');
+    } catch (error) {
+        expect(error.name).toEqual('forbiddenError');
+        expect(error.message).toEqual('Forbidden');
+    }
+})
+
+it("Should throw an error when the user doesn't have a ticket", async () => {
+    jest.spyOn(bookingRepository, "listRooms").mockImplementationOnce((): any => {
+      return {
+        capacity: 10,
+        _count: {
+          Booking: 1
+        }
+      };
+    });
+    jest.spyOn(bookingRepository, "getUserById").mockImplementationOnce((): any => {
+      return {
+        Booking: null,
+        Enrollment: [
+          { Ticket: null }
+        ]
+      };
+    });
+
+    try {
+        await bookingService.createBooking(1, 1);
+        fail('Expected createBooking to throw forbiddenError');
+    } catch (error) {
+        expect(error.name).toEqual('forbiddenError');
+        expect(error.message).toEqual('Forbidden');
+    }
+});
+
 
 
 
