@@ -214,8 +214,8 @@ describe("PUT / Booking", () =>{
           .put(`/booking/${booking.id}`)
           .set('Authorization', `Bearer ${token}`)
           .send({ roomId: secondRoom.id })
-        expect(statusCode).toBe(403)
-      })
+          expect(statusCode).toBe(httpStatus.FORBIDDEN);
+        })
       })
 
 
